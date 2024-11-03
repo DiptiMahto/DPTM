@@ -1,0 +1,73 @@
+import tkinter as tk
+from tkinter import messagebox
+
+class BankAccount:
+    def __init__(self, name, balance=0):
+        self.name = name
+        self.balance = balance
+
+    def deposit(self, amount):
+        self.balance += amount
+
+    def withdraw(self, amount):
+        if amount > self.balance:
+            return False
+        self.balance -= amount
+        return True
+
+class BankManagementSystem:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Bank Management System")
+        self.accounts = []
+
+        tk.Label(root, text="Name").grid(row=0, column=0)
+        tk.Label(root, text="Balance").grid(row=0, column=1)
+
+        self.name_entry = tk.Entry(root)
+        self.name_entry.grid(row=1, column=0)
+        self.balance_entry = tk.Entry(root)
+        self.balance_entry.grid(row=1, column=1)
+
+        tk.Button(root, text="Add Account", command=self.add_account).grid(row=2, column=0)
+        tk.Button(root, text="Deposit", command=self.deposit).grid(row=2, column=1)
+        tk.Button(root, text="Withdraw", command=self.withdraw).grid(row=2, column=2)
+        tk.Button(root, text="Show Accounts", command=self.show_accounts).grid(row=2, column=3)
+
+    def add_account(self):
+        name = self.name_entry.get()
+        balance = float(self.balance_entry.get())
+        self.accounts.append(BankAccount(name, balance))
+        messagebox.showinfo("Success", f"Account for {name} added with balance {balance}")
+
+    def deposit(self):
+        name = self.name_entry.get()
+        amount = float(self.balance_entry.get())
+        for account in self.accounts:
+            if account.name == name:
+                account.deposit(amount)
+                messagebox.showinfo("Success", f"Deposited {amount} to {name}")
+                return
+        messagebox.showerror("Error", "Account not found")
+
+    def withdraw(self):
+        name = self.name_entry.get()
+        amount = float(self.balance_entry.get())
+        for account in self.accounts:
+            if account.name == name:
+                if account.withdraw(amount):
+                    messagebox.showinfo("Success", f"Withdrew {amount} from {name}")
+                    return
+                else:
+                    messagebox.showerror("Error", "Insufficient balance")
+                    return
+        messagebox.showerror("Error", "Account not found")
+
+    def show_accounts(self):
+        for account in self.accounts:
+            print(f"Name: {account.name}, Balance: {account.balance}")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = BankManagementSystem(root)
+    root.mainloop()
