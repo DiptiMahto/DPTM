@@ -1,0 +1,124 @@
+import sqlite3
+
+# Connect to database
+conn = sqlite3.connect('student.db')
+
+# Create a cursor
+c = conn.cursor()
+
+# Create student table
+c.execute('''CREATE TABLE IF NOT EXISTS students (
+            id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL,
+            age INTEGER,
+            grade TEXT)''')
+
+# Commit and close connection
+conn.commit()
+conn.close()
+
+
+import tkinter as tk
+from tkinter import messagebox
+import sqlite3
+
+# Database functions
+def connect_db():
+    conn = sqlite3.connect('student.db')
+    return conn
+
+def add_student(name, age, grade):
+    conn = connect_db()
+    c = conn.cursor()
+    c.execute("INSERT INTO students (name, age, grade) VALUES (?, ?, ?)", (name, age, grade))
+    conn.commit()
+    conn.close()
+
+def get_students():
+    conn = connect_db()
+    c = conn.cursor()
+    c.execute("SELECT * FROM students")
+    rows = c.fetchall()
+    conn.close()
+    return rows
+
+def update_student(id, name, age, grade):
+    conn = connect_db()
+    c = conn.cursor()
+    c.execute("UPDATE students SET name = ?, age = ?, grade = ? WHERE id = ?", (name, age, grade, id))
+    conn.commit()
+    conn.close()
+
+def delete_student(id):
+    conn = connect_db()
+    c = conn.cursor()
+    c.execute("DELETE FROM students WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
+
+# GUI functions
+def add_student_ui():
+    name = name_entry.get()
+    age = age_entry.get()
+    grade = grade_entry.get()
+    if name and age and grade:
+        add_student(name, age, grade)
+        messagebox.showinfo("Success", "Student added successfully")
+        load_students()
+    else:
+        messagebox.showerror("Error", "All fields are required")
+
+def update_student_ui():
+    selected_item = student_list.selection()[0]
+    id = student_list.item(selected_item)['values'][0]
+    name = name_entry.get()
+    age = age_entry.get()
+    grade = grade_entry.get()
+    update_student(id, name, age, grade)
+    messagebox.showinfo("Success", "Student updated successfully")
+    load_students()
+
+def delete_student_ui():
+    selected_item = student_list.selection()[0]
+    id = student_list.item(selected_item)['values'][0]
+    delete_student(id)
+    messagebox.showinfo("Success", "Student deleted successfully")
+    load_students()
+
+def load_students():
+    for row in student_list.get_children():
+        student_list.delete(row)
+    for student in get_students():
+        student_list.insert("", "end", values=student)
+
+# GUI setup
+root = tk.Tk()
+root.title("Student Management System")
+
+tk.Label(root, text="Name").grid(row=0, column=0)
+tk.Label(root, text="Age").grid(row=0, column=1)
+tk.Label(root, text="Grade").grid(row=0, column=2)
+
+name_entry = tk.Entry(root)
+name_entry.grid(row=1, column=0)
+age_entry = tk.Entry(root)
+age_entry.grid(row=1, column=1)
+grade_entry = tk.Entry(root)
+grade_entry.grid(row=1, column=2)
+
+tk.Button(root, text="Add Student", command=add_student_ui).grid(row=2, column=0)
+tk.Button(root, text="Update Student", command=update_student_ui).grid(row=2, column=1)
+tk.Button(root, text="Delete Student", command=delete_student_ui).grid(row=2, column=2)
+
+# Student list
+student_list = tk.ttk.Treeview(root, columns=("id", "name", "age", "grade"), show="headings")
+student_list.heading("id", text="ID")
+student_list.heading("name", text="Name")
+student_list.heading("age", text="Age")
+student_list.heading("grade", text="Grade")
+student_list.grid(row=3, column=0, columnspan=3)
+
+# Load initial data
+load_students()
+
+root.mainloop()
